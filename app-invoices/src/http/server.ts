@@ -1,4 +1,6 @@
-import '../broker/subscriber.ts';
+import '../broker/subscriber.ts'; // init subscriber
+
+import '@opentelemetry/auto-instrumentations-node/register' // start invoices tracing
 
 import { fastify } from 'fastify';
 import { fastifyCors } from '@fastify/cors';

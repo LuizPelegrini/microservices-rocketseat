@@ -1,8 +1,9 @@
+import '@opentelemetry/auto-instrumentations-node/register' // start orders tracing
+
 import { fastify } from 'fastify';
 import { fastifyCors } from '@fastify/cors';
 import { z } from 'zod'
 import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from 'fastify-type-provider-zod';
-import { channels } from '../broker/channels/index.ts';
 import { db } from '../db/client.ts';
 import { schema } from '../db/schema/index.ts';
 import { randomUUID } from 'node:crypto';
@@ -31,18 +32,19 @@ app.post('/orders', {
   console.log('Creating an order with amount ', amount);
 
   const orderId = randomUUID();
+
+  await db.insert(schema.orders).values({
+    id: orderId,
+    customerId: '0efa633d-d8b1-4808-8e43-2379f8674921',
+    amount,
+  })
+
   dispatchOrderCreated({
     orderId,
     amount,
     customer: {
       id: '0efa633d-d8b1-4808-8e43-2379f8674921',
     }
-  })
-
-  await db.insert(schema.orders).values({
-    id: orderId,
-    customerId: '0efa633d-d8b1-4808-8e43-2379f8674921',
-    amount,
   })
 
   return res.status(201).send();
