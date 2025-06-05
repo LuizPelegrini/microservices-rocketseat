@@ -8,6 +8,8 @@ import { db } from '../db/client.ts';
 import { schema } from '../db/schema/index.ts';
 import { randomUUID } from 'node:crypto';
 import { dispatchOrderCreated } from '../broker/messages/order-created.ts';
+import { trace } from '@opentelemetry/api';
+import { tracer } from '../tracer/tracer.ts';
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -38,6 +40,15 @@ app.post('/orders', {
     customerId: '0efa633d-d8b1-4808-8e43-2379f8674921',
     amount,
   })
+
+  // EXAMPLE: add additonal custom attributes for better tracing during debugging
+  trace.getActiveSpan()?.setAttribute('order_id', orderId);
+
+  // EXAMPLE: wrapping slow code into for tracing/debugging
+  const span = tracer.startSpan('Any tag here')
+  span.setAttribute('any attribute for debugging', 'hello world')
+  // any slow code here
+  span.end();
 
   dispatchOrderCreated({
     orderId,
